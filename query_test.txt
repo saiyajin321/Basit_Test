@@ -1,0 +1,79 @@
+drop table if exists employees
+
+create table employees(
+employee_id SERIAL primary key,
+name VARCHAR(255) not null,
+job_title VARCHAR(255) not null,
+salary INT not null,
+department VARCHAR(255) not null,
+joined_date DATE
+)
+
+drop table if exists sales_data
+
+create table sales_data(
+sales_id serial primary key,
+employee_id INT, constraint fk_employees
+foreign key ("employee_id")
+references "employees"("employee_id")
+on delete cascade
+on update cascade,
+sales int not null
+)
+
+
+insert into "employees" ("name", "job_title", "salary", "department", "joined_date")
+values('John Smith', 'Manager', '60000', 'Sales', '2022-01-15'),
+('Jane Doe', 'Analyst', '45000', 'Marketing', '2022-02-01'),
+('Mike Brown', 'Developer', '55000', 'IT', '2022-03-10'),
+('Anna Lee', 'Manager', '65000', 'Sales', '2021-12-05'),
+('Mark Wong', 'Developer', '50000', 'IT', '2023-05-20'),
+('Emily Chen', 'Analyst', '48000', 'Marketing', '2023-06-02')
+
+insert into "sales_data" ("employee_id", "sales")
+values('1', '15000'),
+('2', '12000'),
+('3', '18000'),
+('1', '20000'),
+('4', '22000'),
+('5', '19000'),
+('6', '13000'),
+('2', '14000')
+
+1. select * from employees
+
+2. select Count(*) as manager_count
+from employees
+where job_title = 'Manager'
+
+3. select "name", "salary", "department" from "employees"
+where department = 'Sales' or department = 'Marketing'
+
+4. SELECT AVG(salary) AS average_salary
+FROM employees
+WHERE joined_date >= CURRENT_DATE - INTERVAL '5 years';
+
+5. SELECT e.name, e.salary, SUM(sd.sales) AS total_sales
+FROM employees AS e
+JOIN sales_data AS sd ON e.employee_id = sd.employee_id
+GROUP BY e.employee_id, e.name, e.salary
+ORDER BY total_sales DESC
+LIMIT 5;
+
+6. SELECT e.name, e.salary, d.avg_department_salary
+FROM employees AS e
+JOIN (
+    SELECT department, AVG(salary) AS avg_department_salary
+    FROM employees
+    GROUP BY department
+    HAVING AVG(salary) > (SELECT AVG(salary) FROM employees)
+) AS d ON e.department = d.department;
+
+7. SELECT e.name, SUM(sd.sales) AS total_sales,
+       RANK() OVER (ORDER BY SUM(sd.sales) DESC) AS ranking
+FROM employees AS e
+JOIN sales_data AS sd ON e.employee_id = sd.employee_id
+GROUP BY e.employee_id, e.name
+ORDER BY ranking
+
+
